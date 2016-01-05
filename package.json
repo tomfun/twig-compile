@@ -1,0 +1,25 @@
+{
+  "name": "twig-compile",
+  "version": "0.0.1",
+  "description": "compile twigjs to AMD with dependencies",
+  "main": "twig-compile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tomfun/twig-compile.git"
+  },
+  "keywords": [
+    "twig",
+    "twigjs",
+    "compile",
+    "gulp"
+  ],
+  "author": "tomfun",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tomfun/twig-compile/issues"
+  },
+  "homepage": "https://github.com/tomfun/twig-compile"
+}

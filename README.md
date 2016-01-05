@@ -18,6 +18,7 @@ var config = {
     }
   //....
   }
+  DEST_PATH: './web/dependencies'
 };
 ````
 

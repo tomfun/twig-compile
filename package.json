@@ -1,6 +1,6 @@
 {
   "name": "twig-compile",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "compile twigjs to AMD with dependencies",
   "main": "twig-compile.js",
   "scripts": {
@@ -20,6 +20,12 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/tomfun/twig-compile/issues"
+  },
+  "dependencies": {
+    "through2": "^2.0.0",
+    "twig": "0.8.2",
+    "gulp-util": "^3.0.7",
+    "lodash": "^3.10.1"
   },
   "homepage": "https://github.com/tomfun/twig-compile"
 }

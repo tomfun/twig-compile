@@ -27,7 +27,7 @@ file src/Rt/Bundle/AppBundle/Resources/frontend/views/_/index.twig
 </footer>
 ```
 
-compile result: web/dependencies/js/views/_/index.twig.js
+compilation result: web/dependencies/js/views/_/index.twig.js
 
 ```javascript
 define(["twig", "views/block/index/search-product.twig", "views/block/index/offers.twig", "views/block/index/price.twig", "views/block/index/selection.twig", "views/block/index/size-section.twig"], function (Twig) {

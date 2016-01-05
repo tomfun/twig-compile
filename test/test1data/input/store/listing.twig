@@ -1,0 +1,20 @@
+<div class="catalog">
+  <div class="stores-list">
+    {% for item in stores %}
+      {% include 'block/store/item.twig' with { 'store': item, 'w': 223, 'h': 259 } %}
+    {% endfor %}
+  </div>
+</div>
+<div class="pagination">
+  <ul>
+    <li><a href="#">1</a></li>
+    <li><span>2</span></li>
+    <li><a href="#">3</a></li>
+    <li><a href="#">4</a></li>
+    <li><a href="#">5</a></li>
+    <li><a href="#">6</a></li>
+    <li><a href="#">7</a></li>
+  </ul>
+  <a href="#" class="prev">Предыдущая</a>
+  <a href="#" class="next">Следующая</a>
+</div>

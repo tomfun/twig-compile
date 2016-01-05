@@ -27,5 +27,10 @@
     "gulp-util": "^3.0.7",
     "lodash": "^3.10.1"
   },
+  "devDependencies": {
+    "faker": "^3.0.1",
+    "mocha": "^2.3.3",
+    "should": "^7.1.1"
+  },
   "homepage": "https://github.com/tomfun/twig-compile"
 }

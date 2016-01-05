@@ -1,0 +1,17 @@
+<div class="store">
+  {% if delete is defined and delete == true %}
+    <a href="#" class="delete">Убрать</a>
+  {% endif %}
+  <div class="frame">
+    <a href="#">
+      <img src="{{ resize( store.gallery.mainImage.url, w, h) }}" alt="">
+    </a>
+  </div>
+  <div class="descr">
+            <span class="title">
+              <a href="#">{{ store.name }}</a>
+            </span>
+    <span class="phone">{{ store.phone }}</span>
+    <span class="address">{{ store.address }}</span>
+  </div>
+</div>

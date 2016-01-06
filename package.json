@@ -23,12 +23,11 @@
   },
   "dependencies": {
     "through2": "^2.0.0",
-    "twig": "0.8.2",
+    "twig": "0.8.6",
     "gulp-util": "^3.0.7",
     "lodash": "^3.10.1"
   },
   "devDependencies": {
-    "faker": "^3.0.1",
     "mocha": "^2.3.3",
     "should": "^7.1.1"
   },

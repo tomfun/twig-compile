@@ -1,10 +1,10 @@
 {
   "name": "twig-compile",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "compile twigjs to AMD with dependencies",
   "main": "twig-compile.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "env NODE_ENV=test ./node_modules/.bin/mocha -r should"
   },
   "repository": {
     "type": "git",

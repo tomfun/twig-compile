@@ -1,6 +1,6 @@
 {
   "name": "twig-compile",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "compile twigjs to AMD with dependencies",
   "main": "twig-compile.js",
   "scripts": {

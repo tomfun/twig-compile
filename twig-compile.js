@@ -33,6 +33,58 @@ var checkVersion = function (mj, mi, fx, supress) {
   }
 };
 
+
+module.exports = function (opt) {
+  function transform(file, enc, cb) {
+    if (file.isNull()) return cb(null, file);
+    if (file.isStream()) return cb(new PluginError('gulp-twig-compile', 'Streaming not supported'));
+
+    var options = _.merge({
+      twig:             'twig',
+      'compileOptions': {
+        viewPrefix: '',
+      }
+    }, opt);
+    options = _.merge({
+      compileOptions: {
+        requireName: function (v, template) {
+          return '"' + options.compileOptions.viewPrefix + v + '"';
+        },
+        existFile: function (file) {
+          return _.some(options.compileOptions.lookPaths, function (lookPath) {
+            var fileName = path.join(/*__dirname, */lookPath, file);
+            //console.log('lookPath', lookPath, fileName);
+            return fs.existsSync(fileName);
+          })
+        },
+        id: function (file) {
+          return file.relative;
+        },
+        resetId: false
+      }
+    }, options);
+    var data;
+    try {
+      var templateId = options.compileOptions.id(file);
+      if (options.compileOptions.resetId) {
+        //console.log('reset template: ', templateId, clearTemplate(templateId))
+        clearTemplate(templateId);
+      }
+      var template = twig({id: templateId, data: file.contents.toString('utf8'), allowInlineIncludes: true});
+      data = template.compile(options);
+    } catch (err) {
+      return cb(new PluginError('gulp-twig-compile', err));
+    }
+
+    file.contents = new Buffer(data);
+    file.path = file.path + '.js';
+
+    cb(null, file);
+  }
+
+  return through.obj(transform);
+};
+
 module.exports.setTwig = function setTwig(Twig) {
   Twig = require('twig');
   twig = Twig.twig;
@@ -163,58 +215,6 @@ module.exports.setTwig = function setTwig(Twig) {
       return delete Twig.Templates.registry[templateId];
     }
   });
-};
-
-
-module.exports = function (opt) {
-  function transform(file, enc, cb) {
-    if (file.isNull()) return cb(null, file);
-    if (file.isStream()) return cb(new PluginError('gulp-twig-compile', 'Streaming not supported'));
-
-    var options = _.merge({
-      twig:             'twig',
-      'compileOptions': {
-        viewPrefix: '',
-      }
-    }, opt);
-    options = _.merge({
-      compileOptions: {
-        requireName: function (v, template) {
-          return '"' + options.compileOptions.viewPrefix + v + '"';
-        },
-        existFile: function (file) {
-          return _.some(options.compileOptions.lookPaths, function (lookPath) {
-            var fileName = path.join(/*__dirname, */lookPath, file);
-            //console.log('lookPath', lookPath, fileName);
-            return fs.existsSync(fileName);
-          })
-        },
-        id: function (file) {
-          return file.relative;
-        },
-        resetId: false
-      }
-    }, options);
-    var data;
-    try {
-      var templateId = options.compileOptions.id(file);
-      if (options.compileOptions.resetId) {
-        //console.log('reset template: ', templateId, clearTemplate(templateId))
-        clearTemplate(templateId);
-      }
-      var template = twig({id: templateId, data: file.contents.toString('utf8'), allowInlineIncludes: true});
-      data = template.compile(options);
-    } catch (err) {
-      return cb(new PluginError('gulp-twig-compile', err));
-    }
-
-    file.contents = new Buffer(data);
-    file.path = file.path + '.js';
-
-    cb(null, file);
-  }
-
-  return through.obj(transform);
 };
 
 module.exports.setTwig(require('twig'));

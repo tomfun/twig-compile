@@ -84,8 +84,8 @@ module.exports.transform = function transform(opt, file, enc, cb) {
   cb(null, file);
 };
 
-module.exports.setTwig = function setTwig(Twig) {
-  Twig = require('twig');
+module.exports.setTwig = function setTwig(TwigOtherVersion) {
+  Twig = TwigOtherVersion || require('twig');
   twig = Twig.twig;
   currentTwigVersion = Twig.VERSION.split('.');
   if (checkVersion(0, 8, 5, true)) {

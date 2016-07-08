@@ -1,0 +1,11 @@
+{
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "browser": true,
+    "amd": false,
+    "es6": true
+  }
+}

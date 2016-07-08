@@ -1,6 +1,6 @@
 {
   "name": "twig-compile",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "compile twigjs to AMD with dependencies",
   "main": "twig-compile.js",
   "scripts": {
@@ -14,7 +14,8 @@
     "twig",
     "twigjs",
     "compile",
-    "gulp"
+    "gulp",
+    "symfony"
   ],
   "author": "tomfun",
   "license": "MIT",
@@ -23,12 +24,12 @@
   },
   "dependencies": {
     "through2": "^2.0.0",
-    "twig": "0.9.5",
+    "twig": "^0.9.5",
     "gulp-util": "^3.0.7",
-    "lodash": "^3.10.1"
+    "lodash": "^4.13.1"
   },
   "devDependencies": {
-    "eslint": "^2.11.1",
+    "eslint": "^3.0.1",
     "mocha": "^2.3.3",
     "should": "^7.1.1"
   },

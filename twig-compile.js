@@ -5,6 +5,7 @@ var fs = require('fs');
 var path = require('path');
 var Twig;
 var twig;
+var nameNormilizer;
 var gutil = require('gulp-util');
 var _ = require('lodash');
 
@@ -42,22 +43,34 @@ module.exports.transform = function transform(opt, file, enc, cb) {
   if (file.isStream()) return cb(new PluginError('gulp-twig-compile', 'Streaming not supported'));
 
   var options = _.merge({
-    twig:             'twig',
-    'compileOptions': {
-      viewPrefix: '',
-    }
+    twig:           'twig',
+    compileOptions: {
+      viewPrefix:           '',
+      es5:                  false,
+      checkFrontendVersion: false,
+    },
   }, opt);
   options = _.merge({
     compileOptions: {
       requireName: function (v, template) {
         return '"' + options.compileOptions.viewPrefix + v + '"';
       },
-      existFile:   function (file) {
-        return _.some(options.compileOptions.lookPaths, function (lookPath) {
+      existFile:   function (originalfile) {
+        var lookPaths;
+        var file = originalfile;
+        if (_.isPlainObject(options.compileOptions.lookPaths)) {
+          var filePrefix = originalfile.match(/^([^\/\\]+[\/\\])/);
+          filePrefix = filePrefix && filePrefix[1] || '';
+          lookPaths = options.compileOptions.lookPaths[filePrefix] || [];
+          file = file.replace(filePrefix, '')
+        } else {
+          lookPaths = _.toArray(options.compileOptions.lookPaths) || [];
+        }
+        return _.some(lookPaths, function (lookPath) {
           var fileName = path.join(/*__dirname, */lookPath, file);
-          //console.log('lookPath', lookPath, fileName);
+          // console.log('lookPath', lookPath, fileName);
           return fs.existsSync(fileName);
-        })
+        });
       },
       id:          function (file) {
         return file.relative;
@@ -82,6 +95,10 @@ module.exports.transform = function transform(opt, file, enc, cb) {
   file.path = file.path + '.js';
 
   cb(null, file);
+};
+
+module.exports.setTwigNameNormalizer = function setTwigNameNormalizer(normalizer) {
+  nameNormilizer = normalizer;
 };
 
 module.exports.setTwig = function setTwig(TwigOtherVersion) {
@@ -147,7 +164,7 @@ module.exports.setTwig = function setTwig(TwigOtherVersion) {
      * Inject in parsing and get static (not evaluated!) template dependencies
      */
     var overrideOld = {},
-        override    = function (name, i) {//Twig.
+        override    = function (name, i) {// Twig.
           overrideOld[name] = Twig.logic.handler[name].compile;
           Twig.logic.handler[name].compile = function (token) {
             var match = token.match,
@@ -156,6 +173,12 @@ module.exports.setTwig = function setTwig(TwigOtherVersion) {
               this.compiliationMetadata = [];
             }
             this.compiliationMetadata.push(expression);
+
+            var templateName = nameNormilizer(expression);
+            if (templateName) {
+              match[i] = '"' + templateName + '"';
+            }
+
             return overrideOld[name].apply(this, arguments);
           };
         };
@@ -179,34 +202,51 @@ module.exports.setTwig = function setTwig(TwigOtherVersion) {
       //    requiredViews.push(template.extend);
       //}
 
-      requiredViews = requiredViews.concat(_.map(template.compiliationMetadata, function (file) {
-        return file && file.replace(/^['"]/, '').replace(/['"]$/, '');
-      }));
       /* amd requireds */
-      var requireds = _.map(_.filter(requiredViews, function (file) {
-        if (!file) {
+      var requireds = _.map(_.filter(template.compiliationMetadata, function (realFile) {
+        if (!realFile) {
           return false;
         }
+        var file = nameNormilizer(realFile);
         var isOk = options.compileOptions.willCompile && _.indexOf(options.compileOptions.willCompile, file) !== -1;
         isOk = isOk || options.compileOptions.existFile(file);
         if (!isOk) {
-          gutil.log(gutil.colors.yellow('while compiling ' + id + ' can\'t find template: ') + file);
+          gutil.log(gutil.colors.yellow('while compiling ' + id + ' can\'t find template: ') + file + gutil.colors.gray(' (' + realFile + ')'));
         }
         return isOk;
-      }), function (v, i) {
-        return options.compileOptions.requireName(v, template)
+      }), function (realFile, i) {
+        var file = nameNormilizer(realFile)
+        return options.compileOptions.requireName(file, template, realFile)
       });
       requireds.unshift('"' + pathToTwig + '"');
 
       requireds = requireds.join(', ');
 
-      return 'define([' + requireds + '], function (Twig) {\n  var twig = Twig.twig, template;\n'
-        + '  var currentTwigVersion = Twig.VERSION.split(\'.\');\n'
-        + '  var checkVersion = '
-        + String(checkVersion) + ";\n"
-        + '  checkVersion(' + currentTwigVersion[0] + ',' + currentTwigVersion[1] + ',' + currentTwigVersion[2] + ');\n  '
-        + Twig.compiler.wrap(id, tokens) + '  template = twig(autoGeneratedData);\n' +
-        '  template._autoGeneratedData = autoGeneratedData;//in case You want pass some options\n  return template;\n});';
+      var outCompiledModule =
+            'define(["exports", ' + requireds + '], function (exports, Twig) {\n  var twig = Twig.twig, template;\n';
+      if (options.compileOptions.checkFrontendVersion) {
+        outCompiledModule += '  var currentTwigVersion = Twig.VERSION.split(\'.\');\n'
+          + '  var checkVersion = '
+          + String(checkVersion) + ";\n"
+          + '  checkVersion(' + currentTwigVersion[0] + ',' + currentTwigVersion[1] + ',' + currentTwigVersion[2] + ');\n';
+      }
+      outCompiledModule = outCompiledModule
+        + '  ' + Twig.compiler.wrap(id, tokens)
+        + '  template = twig(autoGeneratedData);\n';
+      if (!options.compileOptions.es5) {
+        outCompiledModule = outCompiledModule
+          + '  Object.defineProperty(exports, "__esModule", {\n'
+          + '    value: true\n'
+          + '  });\n'
+          + '  exports.default = template;\n'
+          + '  exports.render = template.render.bind(template);\n'
+          + '  exports.autoGeneratedData = autoGeneratedData;\n'
+          + '\n});';
+      } else {
+        outCompiledModule = outCompiledModule
+          + '  template._autoGeneratedData = autoGeneratedData;//in case You want pass some options\n  return template;\n});';
+      }
+      return outCompiledModule;
     };
     /*
      * Reset private twig templates storage
@@ -219,3 +259,31 @@ module.exports.setTwig = function setTwig(TwigOtherVersion) {
 };
 
 module.exports.setTwig(require('twig'));
+
+var symfonyFormatRegex = /(\w*):(.*):(.+)/;
+var symfonyBundleNametRegex = /([a-z])([A-Z])/g;
+
+module.exports.setTwigNameNormalizer(function symfonyTwigNormalize(file) {
+  // or us regerxp ^'(.*)'$|^"(.*)"$ for strong quote replacement
+  // http://symfony.com/doc/current/best_practices/templates.html
+  // http://symfony.com/doc/current/book/templating.html#template-naming-locations
+  if (!file) {
+    return false;
+  }
+  var out = file.replace(/^['"]/, '').replace(/['"]$/, '')
+  if (out === file) {
+    return false;
+  }
+  var parsed = out.match(symfonyFormatRegex)
+  if (parsed) {
+    if (parsed[1]) {
+      var b = parsed[1];
+      parsed[1] = b
+        .replace(symfonyBundleNametRegex, (a, b, c) => b + '-' + c.toLowerCase())
+        .replace('-bundle', '')
+        .toLowerCase();
+    }
+    out = path.join(parsed[1], parsed[2], parsed[3]);
+  }
+  return out;
+});

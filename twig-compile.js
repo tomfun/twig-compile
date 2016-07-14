@@ -8,6 +8,7 @@ var twig;
 var nameNormilizer;
 var gutil = require('gulp-util');
 var _ = require('lodash');
+var symfonyTwigNormalize = require('./lib/nameNormalizers').symfonyTwigNormalize;
 
 var PluginError = gutil.PluginError;
 
@@ -248,11 +249,12 @@ module.exports.setTwig = function setTwig(TwigOtherVersion) {
       }
       return outCompiledModule;
     };
+
     /*
      * Reset private twig templates storage
      * It gives ability create another template with same id (usefull for watch)
      */
-    clearTemplate = function (templateId) {
+    function clearTemplate(templateId) {
       return delete Twig.Templates.registry[templateId];
     }
   });
@@ -260,30 +262,4 @@ module.exports.setTwig = function setTwig(TwigOtherVersion) {
 
 module.exports.setTwig(require('twig'));
 
-var symfonyFormatRegex = /(\w*):(.*):(.+)/;
-var symfonyBundleNametRegex = /([a-z])([A-Z])/g;
-
-module.exports.setTwigNameNormalizer(function symfonyTwigNormalize(file) {
-  // or us regerxp ^'(.*)'$|^"(.*)"$ for strong quote replacement
-  // http://symfony.com/doc/current/best_practices/templates.html
-  // http://symfony.com/doc/current/book/templating.html#template-naming-locations
-  if (!file) {
-    return false;
-  }
-  var out = file.replace(/^['"]/, '').replace(/['"]$/, '')
-  if (out === file) {
-    return false;
-  }
-  var parsed = out.match(symfonyFormatRegex)
-  if (parsed) {
-    if (parsed[1]) {
-      var b = parsed[1];
-      parsed[1] = b
-        .replace(symfonyBundleNametRegex, (a, b, c) => b + '-' + c.toLowerCase())
-        .replace('-bundle', '')
-        .toLowerCase();
-    }
-    out = path.join(parsed[1], parsed[2], parsed[3]);
-  }
-  return out;
-});
+module.exports.setTwigNameNormalizer(symfonyTwigNormalize);

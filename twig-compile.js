@@ -254,9 +254,9 @@ module.exports.setTwig = function setTwig(TwigOtherVersion) {
      * Reset private twig templates storage
      * It gives ability create another template with same id (usefull for watch)
      */
-    function clearTemplate(templateId) {
+    clearTemplate = function (templateId) {
       return delete Twig.Templates.registry[templateId];
-    }
+    };
   });
 };
 

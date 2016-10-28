@@ -63,7 +63,11 @@ module.exports.transform = function transform(opt, file, enc, cb) {
           var filePrefix = originalfile.match(/^([^\/\\]+[\/\\])/);
           filePrefix = filePrefix && filePrefix[1] || '';
           lookPaths = options.compileOptions.lookPaths[filePrefix] || [];
-          file = file.replace(filePrefix, '')
+          if (lookPaths.length) {
+            file = file.replace(filePrefix, '');
+          } else {
+            lookPaths = options.compileOptions.lookPaths[''] || [];
+          }
         } else {
           lookPaths = _.toArray(options.compileOptions.lookPaths) || [];
         }
